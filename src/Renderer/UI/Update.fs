@@ -435,21 +435,21 @@ let update msg model =
         | Catalogue -> Cmd.batch  <| editCmds
         | Simulation -> Cmd.batch <| editCmds
         | WaveSim -> Cmd.none
-    | SetHighlighted (componentIds, connectionIds) ->
-        let oldComponentIds, oldConnectionIds = fst model.Hilighted
-        oldComponentIds
-        |> List.map (fun (ComponentId c) -> model.Diagram.UnHighlightComponent c)
-        |> ignore
-        componentIds
-        |> List.map (fun (ComponentId c) -> model.Diagram.HighlightComponent Red c)
-        |> ignore
-        oldConnectionIds
-        |> List.map (fun (ConnectionId c) -> model.Diagram.UnHighlightConnection c)
-        |> ignore
-        connectionIds
-        |> List.map (fun (ConnectionId c) -> model.Diagram.HighlightConnection c "red")
-        |> ignore
-        { model with Hilighted = (componentIds, connectionIds), snd model.Hilighted }, Cmd.none
+    // | SetHighlighted (componentIds, connectionIds) ->
+    //     let oldComponentIds, oldConnectionIds = fst model.Hilighted
+    //     oldComponentIds
+    //     |> List.map (fun (ComponentId c) -> model.Diagram.UnHighlightComponent c)
+    //     |> ignore
+    //     componentIds
+    //     |> List.map (fun (ComponentId c) -> model.Diagram.HighlightComponent Red c)
+    //     |> ignore
+    //     oldConnectionIds
+    //     |> List.map (fun (ConnectionId c) -> model.Diagram.UnHighlightConnection c)
+    //     |> ignore
+    //     connectionIds
+    //     |> List.map (fun (ConnectionId c) -> model.Diagram.HighlightConnection c "red")
+    //     |> ignore
+    //     { model with Hilighted = (componentIds, connectionIds), snd model.Hilighted }, Cmd.none
     | SetSelWavesHighlighted connIds ->
         setSelWavesHighlighted model (Array.toList connIds)
         |> (fun lst -> { model with Hilighted = fst model.Hilighted, lst

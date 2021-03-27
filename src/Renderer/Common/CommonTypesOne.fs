@@ -1,8 +1,8 @@
-module CommonTypes
+module CommonTypesOne
     open Fable.Core
 
-    let draw2dCanvasWidth = 3000
-    let draw2dCanvasHeight = 2000
+    // let draw2dCanvasWidth = 3000
+    // let draw2dCanvasHeight = 2000
 
     //==========================================//
     // Canvas state mapped to f# data structure //
@@ -12,6 +12,7 @@ module CommonTypes
     type PortType = Input | Output
 
     type PortVisibility = |Visible |Invisible | ShowInputsOnly | ShowOutputsOnly
+
 
     /// A component I/O.
     /// Id (like any other Id) is a string generated with 32 random hex charactes,
@@ -29,8 +30,9 @@ module CommonTypes
         PortNumber : int option
         PortType : PortType
         HostId : string
-        // PortPos : Helpers.XYPos
-        // BusWidth : int
+        PortPos : HelpersOne.XYPos
+        BusWidth : int
+        // PortInUse : bool
     }
 
     /// Name identified the LoadedComponent used.
@@ -57,26 +59,42 @@ module CommonTypes
         Data : Map<int64,int64>
     }
 
-
     // Types instantiating objects in the Digital extension.
     type ComponentType =
         | Input of BusWidth: int | Output of BusWidth: int | IOLabel 
-        | BusCompare of BusWidth: int * CompareValue: uint32
         | BusSelection of OutputWidth: int * OutputLSBit: int
         | Constant of Width: int * ConstValue: int
         | Not | And | Or | Xor | Nand | Nor | Xnor |Decode4
         | Mux2 | Demux2
-        | NbitsAdder of BusWidth: int | NbitsXor of BusWidth:int
+        | NbitsAdder of BusWidth: int
         | Custom of CustomComponentType // schematic sheet used as component
         | MergeWires | SplitWire of BusWidth: int // int is bus width
         // DFFE is a DFF with an enable signal.
         // No initial state for DFF or Register? Default 0.
         | DFF | DFFE | Register of BusWidth: int | RegisterE of BusWidth: int 
         | AsyncROM of Memory | ROM of Memory | RAM of Memory // memory is contents
+        | NbitsXor of BusWidth: int
+        | BusCompare of BusWidth:int * BusWidth2:int
 
     /// JSComponent mapped to F# record.
     /// Id uniquely identifies the component within a sheet and is used by draw2d library.
     /// Label is optional descriptor displayed on schematic.
+    // type Component = {
+    //     Id : string
+    //     Type : ComponentType
+    //     Label : string // All components have a label that may be empty.
+    //     InputPorts : Port list
+    //     OutputPorts : Port list
+    //     LastDragPos : Helpers.XYPos
+    //     IsDragging : bool
+    //     Pos: Helpers.XYPos
+    //     H : float
+    //     W : float
+    //     IsSelected: bool
+    //     PortStatus: PortVisibility
+    //     IsSliding: PortVisibility * string * int * Helpers.XYPos 
+    // }
+
     type Component = {
         Id : string
         Type : ComponentType
@@ -105,13 +123,28 @@ module CommonTypes
     // Other //
     //=======//
 
+
     type NumberBase = | Hex | Dec | Bin | SDec
 
     /// Colors to highlight components
-    /// Case name is used (lowercase) as HTML color name
+    /// Case name is used as HTML color name.
     /// See JSHelpers.getColorString
     /// lots of colors can be added, see https://www.w3schools.com/colors/colors_names.asp
-    type HighLightColor = Red | Blue | Yellow | Green | Orange 
+    /// The Text() method converts it to the correct HTML string
+    /// Where speed matters the color must be added as a case in the match statement
+    type HighLightColor = Red | Blue | Yellow | Green | Orange | Grey | Black
+    with 
+        member this.Text() = // the match statement is used for performance
+            match this with
+            | Red -> "Red"
+            | Blue -> "Blue"
+            | Yellow -> "Yellow"
+            | Green -> "Green"
+            | Grey -> "Grey"
+            | Black -> "Black"
+            | c -> sprintf "%A" c
+            
+            
 
     // The next types are not strictly necessary, but help in understanding what is what.
     // Used consistently they provide type protection that greatly reduces coding errors
@@ -156,12 +189,6 @@ module CommonTypes
     type OutputPortNumber = | OutputPortNumber of int
 
     (*---------------------------Types for wave Simulation----------------------------------------*)
-
-
-    type MoreWaveData =
-        | RamWaveData of addr: uint32 * ramPath: ComponentId list * label:string
-        | ExtraData of ramPath: ComponentId list * label:string
-
 
     // The "NetList" types contain all the circuit from Diagram in an abstracted form that
     // removed layout info and connections as separate entities. However, connection Ids are

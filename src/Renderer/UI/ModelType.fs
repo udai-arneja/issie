@@ -14,6 +14,7 @@ open SimulatorTypes
 open Draw2dWrapper
 open JSTypes
 open Fable.React
+open Sheet
 
 type RightTab =
     | Properties
@@ -350,7 +351,7 @@ type Model = {
     /// which top-level sheet is used by wavesim
     WaveSimSheet: string
     /// draw canvas
-    Diagram : Draw2dWrapper
+    Diagram : Sheet.Model
     /// true during period when a sheet or project is loading
 
     IsLoading: bool

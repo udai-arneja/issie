@@ -98,7 +98,23 @@ let fileMenu (dispatch) =
             JSHelpers.debugTraceUI <- Set.ofList [])
         makeCondItem (JSHelpers.debugLevel <> 0 && not isMac) "Run performance check" None (fun _ -> 
             displayPerformance 100 1000000)
-     ]
+
+            ]
+
+
+
+
+
+
+
+//potential changes here
+
+
+
+
+
+
+
 
 let viewMenu dispatch =
     let devToolsKey = if isMac then "Alt+Command+I" else "Ctrl+Shift+I"

@@ -9,12 +9,14 @@ open Fable.React.Props
 open DiagramStyle
 open ModelType
 open CommonTypes
+open Sheet
 open Draw2dWrapper
 open Extractor
 open CatalogueView
 open FileMenuView
 open WaveformSimulationView
 open Helpers
+
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -41,6 +43,8 @@ let private mapPorts (oldComp : Component) (newComp : Component) : (string * Por
     let inputs = (oldComp.InputPorts, newComp.InputPorts) ||> List.map2 mapPort
     let outputs = (oldComp.OutputPorts, newComp.OutputPorts) ||> List.map2 mapPort
     inputs @ outputs
+
+
 
 /// Transform a connection replacing the ports using the provided mapping.
 let private mapToNewConnection (portMappings : Map<string,Port>) oldConnection : Connection =
@@ -76,7 +80,7 @@ let pasteAction model =
     // components, and add the newly created connections to the diagram.
     oldConnections
     |> List.map ((mapToNewConnection portMappings) >>
-                 (model.Diagram.LoadConnection false))
+                 (model.Diagram.LoadConnection false)) 
     |> ignore
 
 let viewOnDiagramButtons model dispatch =
@@ -104,7 +108,7 @@ let initActivity = {
 /// Initial value of model
 let init() = {
     AsyncActivity = initActivity
-    Diagram = new Draw2dWrapper()
+    Diagram = fst (Sheet.init())
     WaveSimulationIsOutOfDate = true
     IsLoading = false
     LastDetailedSavedState = ([],[])
@@ -149,7 +153,7 @@ let init() = {
 
 
 
-let makeSelectionChangeMsg (model:Model) (dispatch: Msg -> Unit) (ev: 'a) =
+let makeSelectionChangeMsg (model:ModelType.Model) (dispatch: ModelType.Msg -> Unit) (ev: 'a) =
     dispatch SelectionHasChanged
 
 // -- Create View
@@ -178,7 +182,7 @@ let private viewRightTab model dispatch =
             ( WaveformSimulationView.viewWaveSim model dispatch )
 
 /// determine whether moving the mouse drags the bar or not
-let inline setDragMode (modeIsOn:bool) (model:Model) dispatch =
+let inline setDragMode (modeIsOn:bool) (model:ModelType.Model) dispatch =
     fun (ev: Browser.Types.MouseEvent) ->        
         makeSelectionChangeMsg model dispatch ev
         //printfn "START X=%d, buttons=%d, mode=%A, width=%A, " (int ev.clientX) (int ev.buttons) model.DragMode model.ViewerWidth
@@ -190,7 +194,7 @@ let inline setDragMode (modeIsOn:bool) (model:Model) dispatch =
         | _ -> ()
 
 /// Draggable vertivcal bar used to divide Wavesim window from Diagram window
-let dividerbar (model:Model) dispatch =
+let dividerbar (model:ModelType.Model) dispatch =
     let isDraggable = model.RightPaneTabVisible = WaveSim
     let variableStyle = 
         if isDraggable then [
