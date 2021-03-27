@@ -6,7 +6,7 @@ open Fulma
 open Fable.React
 open Fable.React.Props
 
-open BusWidthInferer
+open BusWidthInferer 
 open SimulatorTypes
 open ModelType
 open CommonTypes

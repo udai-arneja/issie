@@ -19,6 +19,15 @@ type Model = {
     LastOp: HelpersOne.MouseOp;
     Zoom : float
     LastDragPos : XYPos
+
+
+
+    GetCanvasState :
+        match getCanvasState with 
+        | None -> "Error"
+        | Some -> (Symbol.Symbol list * BusWire.Wire list)
+
+        
     }
 
 type KeyboardMsg =
@@ -37,6 +46,41 @@ type SelectingBox={
 //helper functions
 
 //ISSIE FUNCTIONS
+
+let findsymbol (wire:BusWire.Wire) (model:Model) =
+    (List.find (fun (sym:Symbol.Symbol) -> string(sym.Id)=wire.SrcSymbol) Symbol.Model.Symbols)
+
+let convertToComp (symbol: Symbol.Symbol): CommonTypesOne.Component=
+    {
+        Id=string(symbol.Id)
+        Type= symbol.Type
+        Label="Test" //: string // All components have a label that may be empty.
+        InputPorts= symbol.InputPorts
+        OutputPorts= symbol.OutputPorts
+        X = int(symbol.Pos.X)
+        Y = int(symbol.Pos.Y)
+        H = int(symbol.H)
+        W = int(symbol.W)
+    }
+
+let convertToConnect (wire:BusWire.Wire) model: CommonTypesOne.Connection =
+    {
+        Id=string(wire.Id)
+        Source= List.find (fun port -> port.Id= wire.TargetPort) (findsymbol wire model).InputPorts
+        Target=(List.find (fun port -> port.Id=wire.SrcPort) (List.find (fun (sym:Symbol.Symbol) -> string(sym.Id)=wire.TargetSymbol) model.Wire.Symbol.Symbols).OutputPorts)
+        Vertices=List.map (fun xypos -> (xypos.X,xypos.Y)) wire.Vertices
+    }  
+let GetCanvasState =
+    let listofSymbols : CommonTypesOne.Component list=
+        List.fold (fun state (sym:Symbol.Symbol) -> state@[convertToComp sym]) []  Wire.Symbol.Symbols // model.Wire.Symbol.Symbols
+    
+    let listofWires : CommonTypesOne.Connection list=
+        List.fold (fun state wire -> state@[convertToConnect wire model]) [] model.Wire.Wires
+
+    (listofSymbols, listofWires)
+
+
+       
 
 
 
