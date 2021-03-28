@@ -27,7 +27,9 @@ open Fable.Core.JsInterop
 let private copyAction model dispatch =
     match Sheet.getSelected model.Diagram with
     | None -> ()
-    | Some jsState -> extractState jsState |> SetClipboard |> dispatch
+    | Some selState -> selState 
+                       |> SetClipboard 
+                       |> dispatch
 
 /// Map the port Ids of the old component to the equivalent Ports of the new
 /// component. For example, if the component is a Not, the mapping will have two
@@ -64,9 +66,9 @@ let pasteAction model =
     let newComponents =
         oldComponents
         |> List.map ((fun comp ->
-            match model.Diagram.CreateComponent comp.Type comp.Label (comp.X+30) (comp.Y+30) with
+            match Sheet.createComponent comp.Type comp.Label (comp.X+30) (comp.Y+30) model.Diagram with
             | None -> failwithf "what? Could not paste component %A" comp
-            | Some jsComp -> jsComp) >> extractComponent)
+            | Some newcomp -> newcomp))
     // The new (copied) components have been added to the diagram, now we need
     // to copy the connections among them.
 
@@ -80,7 +82,7 @@ let pasteAction model =
     // components, and add the newly created connections to the diagram.
     oldConnections
     |> List.map ((mapToNewConnection portMappings) >>
-                 (model.Diagram.LoadConnection false)) 
+                 (Sheet.loadConnection model.Diagram)) 
     |> ignore
 
 let viewOnDiagramButtons model dispatch =

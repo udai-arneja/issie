@@ -148,7 +148,7 @@ let private loadStateIntoModel (compToSetup:LoadedComponent) waveSim ldComps mod
     let components, connections = compToSetup.CanvasState
     let loadExceptErr =
         try
-            List.map model.Diagram.LoadComponent components |> ignore
+            List.map model.Diagram.LoadComponentcomponents |> ignore
             //printfn "Check 2..."
             List.map (model.Diagram.LoadConnection true) connections |> ignore
             //printfn "Check 3..."

@@ -382,7 +382,7 @@ type Draw2dWrapper() =
                 assertNotNull (draw2dLib.getPortById targetParentNode conn.Target.Id) "targetPort"
             let connId = if useId then Some conn.Id else None
             createConnection c connId conn.Vertices sourcePort targetPort
-        |> tryActionWithCanvas "LoadConnection"
+        |> tryActionWithCanvas "LoadConnection" 
 
     member this.GetAndClearLoadConnectionErrors () =
         let errs = createConnectionError

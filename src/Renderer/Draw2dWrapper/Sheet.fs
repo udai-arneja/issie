@@ -99,6 +99,22 @@ let getSelected (model: Model) =
 
 let getScrollArea (model:Model) = ()
 
+let loadConnection (model:Model) (useId : bool)(wire: CommonTypes.Connection) =
+    let uId = if useId then Some wire.Id else None 
+    let wModel, wCmd = BusWire.update (BusWire.AddWire (wire.Source.Id, wire.Target.Id) )model.Wire
+    let returnedWire = List.last (model.Wire.Wires)
+    returnedWire
+    |> convertToConnect
+    |> Some 
+
+let createConnection (model:Model) (wire: CommonTypes.Connection) =
+    let wModel, wCmd = BusWire.update (BusWire.AddWire (wire.Source.Id, wire.Target.Id) )model.Wire
+    let returnedWire = List.last (model.Wire.Wires)
+    returnedWire
+    |> convertToConnect
+    |> Some 
+
+let flushCommandStack (model:Model) = ()
 
 let getComponentById compId model =
     (List.find (fun (sym:Symbol.Symbol) -> string(sym.Id)=compId) model.Wire.Symbol.Symbols)
@@ -107,8 +123,12 @@ let getComponentById compId model =
     
 
 let createComponent comp label x y model = 
+    //CHANGE THIS TO USE INPUTS
     let wModel, wCmd = BusWire.update (BusWire.Msg.Symbol (Symbol.AddSymbol ([2;2], [2], CommonTypes.Nor))) model.Wire
-    ()
+    let symbol = List.last model.Wire.Symbol.Symbols
+    symbol
+    |> convertToComp
+    |> Some
 
 let clearCanvas model = 
     let model,cmds = (BusWire.init)() //initial model state
@@ -124,8 +144,24 @@ let clearCanvas model =
         Zoom = 1.0
         LastDragPos={X=0.;Y=0.}
     }, Cmd.map Wire cmds
-//
 
+let PaintConnection connId width (colorOpt: CommonTypes.HighLightColor option) model = 
+    let stroke, color = 
+        match width with 
+        | 1 ->  1, "black"
+        | n when n > 1 ->  3, "purple"
+        | n -> failwithf "what? PaintConnection called with width %d" n
+    //let color' = match colorOpt with |Some newColor -> (sprintf "%A" newColor).ToLower() | None -> color
+    // let findWire = 
+    model.Wire.Wires
+    |> List.map (fun connection -> if connection.Id = connId
+                                   then {connection with BusWidth=stroke;Highlighted=false}
+                                   else connection)  //should return a wire
+
+let setNumberOfBits (model:Model) = ()
+
+let SetTopOutputWidth (model:Model) = ()
+  
 let zoom = 1.0
 
 let dimensions (startPos:XYPos) (endPos: XYPos) = sprintf "%f,%f %f,%f %f,%f %f,%f" startPos.X startPos.Y startPos.X endPos.Y endPos.X endPos.Y endPos.X startPos.Y

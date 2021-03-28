@@ -310,7 +310,7 @@ let private setSelWavesHighlighted model connIds =
     let (_, errConnIds), oldConnIds = model.Hilighted
     let currentConnIds = 
         Sheet.getCanvasState model.Diagram
-        |> Option.map extractState
+        // |> Option.map extractState
         |> Option.map (snd >> List.map (fun conn -> conn.Id))
         |> Option.defaultValue []
         |> Set
@@ -526,9 +526,9 @@ let update msg model =
         match model.SelectedComponent with
         | None -> {model with LastUsedDialogWidth = width}
         | Some comp ->
-            match model.Diagram.GetComponentById comp.Id with
+            match Sheet.getComponentById comp.Id model.Diagram with
             | Error err -> {model with LastUsedDialogWidth=width}
-            | Ok jsComp -> { model with SelectedComponent = Some <| extractComponent jsComp ; LastUsedDialogWidth=width}
+            | Ok comp -> { model with SelectedComponent = Some comp ; LastUsedDialogWidth=width}
         |> (fun x -> x, Cmd.none)
     | MenuAction(act,dispatch) ->
         getMenuView act model dispatch, Cmd.none

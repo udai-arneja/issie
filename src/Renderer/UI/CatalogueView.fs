@@ -390,9 +390,9 @@ let private menuItem label onClick =
 
 let private createComponent comp label model dispatch =
     let x,y = getNewComponentPosition model
-    match model.Diagram.CreateComponent comp label x y with
-    | Some jsComp -> 
-        Extractor.extractComponent jsComp
+    match Sheet.createComponent comp label x y model.Diagram with
+    | Some newcomp -> 
+        newcomp
         |> SetCreateComponent 
         |> dispatch
         |> ignore
