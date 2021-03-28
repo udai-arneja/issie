@@ -6,6 +6,7 @@ open Browser
 open Elmish
 open Elmish.React
 open HelpersOne
+open CommonTypes
 
 
 //------------------------------------------------------------------------//
@@ -22,15 +23,15 @@ open HelpersOne
 /// a separadatatype and Id or whether port offsets from
 /// component coordinates are held in some other way, is up to groups.
 // type HighlightWire = 
-//     | Wrong of CommonTypesOne.Red
-//     | Fine of CommonTypesOne.Black
-//     | Hovering of CommonTypesOne.Blue
-//     | Selecting of CommonTypesOne.Green
+//     | Wrong of CommonTypes.Red
+//     | Fine of CommonTypes.Black
+//     | Hovering of CommonTypes.Blue
+//     | Selecting of CommonTypes.Green
 
 type Wire = {
-    Id: CommonTypesOne.ConnectionId 
-    SrcSymbol: string//CommonTypesOne.ComponentId // source symbol
-    TargetSymbol: string//CommonTypesOne.ComponentId // target symbol
+    Id: ConnectionId 
+    SrcSymbol: string//CommonTypes.ComponentId // source symbol
+    TargetSymbol: string//CommonTypes.ComponentId // target symbol
     SrcPort: string
     TargetPort: string
     Vertices: XYPos List
@@ -44,7 +45,7 @@ type Wire = {
 type Model = {
     Symbol: Symbol.Model
     Wires: Wire list
-    Color: CommonTypesOne.HighLightColor
+    Color: CommonTypes.HighLightColor
     wBB: (XYPos*XYPos) list List
     AutoRouting: bool
     }
@@ -59,23 +60,23 @@ type Model = {
 type Msg =
     | Symbol of Symbol.Msg
     | AddWire of (string * string)
-    // | SetColor of CommonTypesOne.HighLightColor
+    // | SetColor of CommonTypes.HighLightColor
     | DeleteWire
     | MouseMsg of MouseT
-    | ToggleSelect of (CommonTypesOne.ComponentId list * (Wire * int) list)
-    // | Hovering of (CommonTypesOne.ComponentId list * (Wire * int) list)
-    | Dragging of (CommonTypesOne.ComponentId list * (Wire * int) list) * prevPos: XYPos * currPos: XYPos
-    | UpdateBoundingBoxes of (CommonTypesOne.ComponentId list * (Wire * int) list)
-    | SnaptoGrid of (CommonTypesOne.ComponentId list * (Wire * int) list)
+    | ToggleSelect of (CommonTypes.ComponentId list * (Wire * int) list)
+    // | Hovering of (CommonTypes.ComponentId list * (Wire * int) list)
+    | Dragging of (CommonTypes.ComponentId list * (Wire * int) list) * prevPos: XYPos * currPos: XYPos
+    | UpdateBoundingBoxes of (CommonTypes.ComponentId list * (Wire * int) list)
+    | SnaptoGrid of (CommonTypes.ComponentId list * (Wire * int) list)
     // | RunBusWidthInference
-    // | DraggingList of wId : CommonTypesOne.ComponentId list  * pagePos: XYPos * prevPagePos: XYPos
-    // | EndDragging of wId : CommonTypesOne.ComponentId
-    // | EndDraggingList of wId : CommonTypesOne.ComponentId list *pagePos:XYPos
+    // | DraggingList of wId : CommonTypes.ComponentId list  * pagePos: XYPos * prevPagePos: XYPos
+    // | EndDragging of wId : CommonTypes.ComponentId
+    // | EndDraggingList of wId : CommonTypes.ComponentId list *pagePos:XYPos
 
 
 
 type WireRenderProps = {
-    key : CommonTypesOne.ConnectionId
+    key : CommonTypes.ConnectionId
     WireP: Wire
     SrcP: XYPos 
     TgtP: XYPos
@@ -91,7 +92,7 @@ type WireRenderProps = {
 }
 
 
-// let convertToComp (symbol:Symbol.Symbol): CommonTypesOne.Component=
+// let convertToComp (symbol:Symbol.Symbol): CommonTypes.Component=
 //     {
 //         Id=string(symbol.Id)
 //         Type=symbol.Type
@@ -107,7 +108,7 @@ type WireRenderProps = {
 // let findsymbol wire model=
 //     (List.find (fun (sym:Symbol.Symbol) -> string(sym.Id)=wire.SrcSymbol) model.Symbol.Symbols)
 
-// let convertToConnect (wire:Wire) model: CommonTypesOne.Connection=
+// let convertToConnect (wire:Wire) model: CommonTypes.Connection=
 //     {
 //         Id=string(wire.Id)
 //         Source= List.find (fun port -> port.Id=wire.TargetPort) (findsymbol wire model).InputPorts
@@ -151,13 +152,13 @@ type WireRenderProps = {
 let posDiff (a:XYPos) (b:XYPos) =
     {X=a.X-b.X; Y=a.Y-b.Y}
 
-let posAdd a b =
+let posAdd (a:XYPos) (b:XYPos) =
     {X=a.X+b.X; Y=a.Y+b.Y}
 
 let posOf x y = {X=x;Y=y}
 
 /// look up wire in WireModel
-let wire (wModel: Model)(wId: CommonTypesOne.ConnectionId): Option<Wire> =
+let wire (wModel: Model)(wId: CommonTypes.ConnectionId): Option<Wire> =
     wModel.Wires
     |> List.tryPick (function {Id = wId} as x -> Some x) 
 
@@ -169,7 +170,7 @@ let midpoint (startPoint:XYPos) (endPoint:XYPos) =
         
 
 let rec autoroute (isHorizontal: bool) (nextPort: XYPos) (startPort:XYPos) (endPort: XYPos) (model:Model) (lastPos: XYPos) (count:int)=
-    let boundingBoxSearchS Port=
+    let boundingBoxSearchS (Port: XYPos) =
         List.filter (fun (BB:(XYPos*XYPos)) -> (Port.X >= (fst BB).X && Port.X <= (snd BB).X) || (Port.X <= (fst BB).X && Port.X >= (snd BB).X)) model.Symbol.SymBBoxes// go through to find all bboxlists in symbol with correct x range 
         |> List.filter ( fun BB -> (Port.Y >= (fst BB).Y && Port.Y <= (snd BB).Y) || (Port.Y <= (fst BB).Y && Port.Y >= (snd BB).Y) ) 
     let checkBBHorizontal = List.filter (fun (sym:(XYPos*XYPos)) -> (nextPort.X >  ((fst sym).X)) && (lastPos.X < (fst sym).X)) model.Symbol.SymBBoxes
@@ -307,7 +308,7 @@ let rec autoroute5 (isHorizontal: bool) (nextPort: XYPos) (startPort:XYPos) (end
     //                                 else {X=nextPort.X; Y=((snd minBBox.[2]))} :: autoroute5 (not isHorizontal) {X = (midpoint nextPort endPort); Y=((snd minBBox.[2]))} startPort endPort model
     //                            else 
     //                                    nextPort :: autoroute5 (not isHorizontal) {X = (midpoint nextPort endPort); Y = nextPort.Y} startPort endPort model
-    let boundingBoxSearchS Port=
+    let boundingBoxSearchS (Port: XYPos)  =
         List.filter (fun (BB:(XYPos*XYPos)) -> (Port.X >= (fst BB).X && Port.X <= (snd BB).X) || (Port.X <= (fst BB).X && Port.X >= (snd BB).X)) model.Symbol.SymBBoxes// go through to find all bboxlists in symbol with correct x range 
         |> List.filter ( fun BB -> (Port.Y >= (fst BB).Y && Port.Y <= (snd BB).Y) || (Port.Y <= (fst BB).Y && Port.Y >= (snd BB).Y) ) 
     let checkBBHorizontal = List.filter (fun (sym:(XYPos*XYPos)) -> (nextPort.X > (fst sym).X) && (lastPos.X < (fst sym).X)) model.Symbol.SymBBoxes
@@ -420,10 +421,10 @@ let segmentList (vertexList: XYPos list) : (XYPos * XYPos) list= vertexList |> L
 /// box to be. Returns XYPos*XYPos list, with both the XYPos being the diagonal points in a bounding box. 
 let wireBoundingBoxes (verticesList: XYPos list) =
     let padding = 10.0
-    let rightX segment = segment |> List.sortBy (fun v -> v.X)
-    let leftX segment = segment |> List.sortByDescending (fun v -> v.X)
-    let topY segment = segment |> List.sortByDescending (fun v -> v.Y)
-    let bottomY segment = segment |> List.sortBy (fun v -> v.Y)
+    let rightX (segment: XYPos list) = segment |> List.sortBy (fun v -> v.X)
+    let leftX (segment: XYPos list) = segment |> List.sortByDescending (fun v -> v.X)
+    let topY (segment: XYPos list) = segment |> List.sortByDescending (fun v -> v.Y)
+    let bottomY (segment: XYPos list) = segment |> List.sortBy (fun v -> v.Y)
     let findBox (startVertex: XYPos) (endVertex: XYPos) : (XYPos*XYPos)=
         if startVertex.X = endVertex.X then 
             let maxY = (bottomY [startVertex;endVertex]).Head
@@ -501,9 +502,9 @@ let singleWireView =
 let view (model:Model) (dispatch: Dispatch<Msg>)=
     let convertIdToPort inOut (id:string) =
         match inOut with 
-        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
-        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
 
     let wires = 
@@ -538,7 +539,7 @@ let view (model:Model) (dispatch: Dispatch<Msg>)=
                 Highlighted = w.Highlighted
                 IsDragging = false 
                 LastDragPos = vertex 
-                // PortInUse = CommonTypesOne.Port.PortInUse
+                // PortInUse = CommonTypes.Port.PortInUse
                 }
             singleWireView props) // pass in the props for this given wire into singleWireView
     let symbols = Symbol.view model.Symbol (fun sMsg -> dispatch (Symbol sMsg)) 
@@ -552,14 +553,14 @@ let createNewBB outp inp model=
 let createNewWire (sourcePort:string) (targetPort:string) (model:Model) : Wire =
     let convertIdToPort inOut (id:string) =
         match inOut with 
-        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
-        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
 
     if (convertIdToPort 0 targetPort).BusWidth <> (convertIdToPort 1 sourcePort).BusWidth
     then 
-        let wireId = CommonTypesOne.ConnectionId (HelpersOne.uuid())
+        let wireId = CommonTypes.ConnectionId (HelpersOne.uuid())
         {
             SrcSymbol = (convertIdToPort 1 sourcePort).HostId
             TargetSymbol = (convertIdToPort 0 targetPort).HostId
@@ -574,7 +575,7 @@ let createNewWire (sourcePort:string) (targetPort:string) (model:Model) : Wire =
             LastDragPos =  newWireRoute   (convertIdToPort 1 sourcePort).PortPos (convertIdToPort 0 targetPort).PortPos model
         }
     else 
-    let wireId = CommonTypesOne.ConnectionId (HelpersOne.uuid())
+    let wireId = CommonTypes.ConnectionId (HelpersOne.uuid())
     {
         SrcSymbol = (convertIdToPort 1 sourcePort).HostId
         TargetSymbol = (convertIdToPort 0 targetPort).HostId
@@ -646,7 +647,7 @@ let updateVertices (segId: int) (wir: Wire) (mPos: XYPos) : XYPos list =
     /// Initialisation function. Begins with no wires, and uses the Symbol model as a base. 
 let init () = 
     let symbols, cmd = Symbol.init()
-    {Wires = []; Symbol = symbols;Color = CommonTypesOne.Red; wBB = []; AutoRouting=false }, Cmd.none  //; AutoRouting=true
+    {Wires = []; Symbol = symbols;Color = CommonTypes.Red; wBB = []; AutoRouting=false }, Cmd.none  //; AutoRouting=true
 
 /// check through the symbols - if IsSelected=true, filter the wires
     /// after, check through the wires - Filter(if Selected=true, remove)
@@ -655,9 +656,9 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
     printfn "autoroute %A" model.AutoRouting
     let convertIdToPort inOut (id:string) =
         match inOut with 
-        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |1 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.InputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
-        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypesOne.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
+        |0 -> List.collect (fun (x:Symbol.Symbol) -> (List.tryFind (fun (y:CommonTypes.Port) -> y.Id = id) x.OutputPorts) |> function |Some a -> [a] |None -> []) model.Symbol.Symbols
               |>List.head
     match msg with
 
@@ -768,14 +769,14 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
 //---------------Other interface functions--------------------//
 
 /// look up wire in WireModel
-//let wire (wModel: Model) (wId: CommonTypesOne.ConnectionId): Wire =
+//let wire (wModel: Model) (wId: CommonTypes.ConnectionId): Wire =
 //    wModel.Wires 
 //    |> List.contains (fun wire -> wire.Id = wId)
 
 ///// Given a point on the canvas, returns the wire ID of a wire within a few pixels
 ///// or None if no such. Where there are two close wires the nearest is taken. Used
 ///// to determine which wire (if any) to select on a mouse click
-//let wireToSelectOpt (wModel: Model) (pos: XYPos) : CommonTypesOne.ConnectionId option = 
+//let wireToSelectOpt (wModel: Model) (pos: XYPos) : CommonTypes.ConnectionId option = 
 
 //    let listOfBoundingBoxes = wModel.Wires |> List.map (fun x -> x.BoundingBoxes)
 //    let isInside bblst  =
@@ -794,14 +795,14 @@ let update (msg : Msg) (model : Model): Model*Cmd<Msg> =
 //    | [(true, wireId)] -> Some wireId
 //    | _ -> None
 //----------------------interface to Issie-----------------------//
-let extractWire (wModel: Model) (sId:CommonTypesOne.ComponentId) : CommonTypesOne.Component= 
+let extractWire (wModel: Model) (sId:CommonTypes.ComponentId) : CommonTypes.Component= 
     failwithf "Not implemented"
     
-let extractWires (wModel: Model) : CommonTypesOne.Component list = 
+let extractWires (wModel: Model) : CommonTypes.Component list = 
     failwithf "Not implemented"
 
 /// Update the symbol with matching componentId to comp, or add a new symbol based on comp.
-let updateSymbolModelWithComponent (symModel: Model) (comp:CommonTypesOne.Component) =
+let updateSymbolModelWithComponent (symModel: Model) (comp:CommonTypes.Component) =
     failwithf "Not Implemented"
 
 

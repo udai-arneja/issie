@@ -25,7 +25,7 @@ open Fable.Core.JsInterop
 //--------------------------------------------------------------------------------------//
 
 let private copyAction model dispatch =
-    match model.Diagram.GetSelected () with
+    match Sheet.getSelected model.Diagram with
     | None -> ()
     | Some jsState -> extractState jsState |> SetClipboard |> dispatch
 

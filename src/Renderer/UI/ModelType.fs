@@ -461,12 +461,12 @@ let setActivity (f: AsyncTasksT -> AsyncTasksT) (model: Model) =
 
 
 let getDetailedState (model:Model) =
-    model.Diagram.GetCanvasState()
-    |> Option.map Extractor.extractState
+    Sheet.getCanvasState model.Diagram
+    // |> Option.map Extractor.extractState
     |> Option.defaultValue ([],[])
 
 let getReducedState (model:Model) =
-    model.Diagram.GetCanvasState()
+    Sheet.getCanvasState model.Diagram
     |> Option.map Extractor.extractReducedState 
 
 let addReducedState a name model =
@@ -481,11 +481,10 @@ let changeSimulationIsStale (b:bool) (m:Model) =
     { m with WaveSimulationIsOutOfDate = b}
 
 let getComponentIds (model: Model) =
-    let extractIds (jsComps,jsConns) = 
-        jsComps
-        |> List.map Extractor.extractComponent
-        |> List.map (fun comp -> ComponentId comp.Id)
-    model.Diagram.GetCanvasState()
+    let extractIds ((comps:Component List),conns) = 
+        comps
+        |> List.map (fun comp -> string(comp.Id) )
+    Sheet.getCanvasState model.Diagram
     |> Option.map extractIds
     |> Option.defaultValue []
     |> Set.ofList
@@ -571,8 +570,8 @@ let spState ((comps,conns):CanvasState) =
     sprintf "Canvas<%A,%A>" (List.map spComp comps) (List.map spConn conns)
 
 let spCanvas (model:Model) = 
-    model.Diagram.GetCanvasState()
-    |> Option.map Extractor.extractState
+    Sheet.getCanvasState model.Diagram
+    // |> Option.map Extractor.extractState
     |> Option.map spState
     |> Option.defaultValue "None"
 

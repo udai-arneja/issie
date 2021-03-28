@@ -87,7 +87,7 @@ let n2StringOfRadix (hasRadixPrefix: bool) (n: bigint) (nBits: uint32) (rad: Num
 
 /// get an option of the reduced canvas state
 let getReducedCanvState model =
-    match model.Diagram.GetCanvasState() with
+    match Sheet.getCanvasState model.Diagram with
     | Some cS -> Some <| extractReducedState cS
     | None -> None
     
@@ -458,7 +458,7 @@ let private appendSimData (model: Model) (wSModel: WaveSimModel) nCycles =
 
 /// get JSConnection list (1 or 0) from ConnectionId (as a string)
 let private connId2JSConn (diagram:Draw2dWrapper.Draw2dWrapper) connId =
-    match diagram.GetCanvasState() with
+    match diagram.GetCanvasState() with // skip this one 
     | Some (_, jsConns) -> 
         List.tryFind (fun jsConn -> (extractConnection jsConn).Id = connId) jsConns
     | None -> None

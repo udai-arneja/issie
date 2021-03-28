@@ -79,7 +79,7 @@ let rec prepareSimulationMemoised
 /// Return SimulationData that can be used to extend the simulation
 /// as needed, or error if simulation fails
 let makeSimData model =
-    match model.Diagram.GetCanvasState(), model.CurrentProj with
+    match Sheet.getCanvasState model.Diagram, model.CurrentProj with
     | None, _ -> None
     | _, None -> None
     | Some jsState, Some project ->
@@ -294,7 +294,7 @@ let private viewSimulationData (simData : SimulationData) model dispatch =
   
 
 let viewSimulation model dispatch =
-    let JSState = model.Diagram.GetCanvasState ()
+    let JSState = Sheet.getCanvasState model.Diagram
     let startSimulation () =
         match JSState, model.CurrentProj with
         | None, _ -> ()

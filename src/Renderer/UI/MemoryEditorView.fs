@@ -175,7 +175,7 @@ let private makeEditorBody memory compId memoryEditorData model dispatch =
             let maxDispLoc = if maxDispLocWrapped > a then maxDispLocWrapped else uint64 (-1L)
             a, min  maxDispLoc maxLocAddr
     let dynamicMem =
-        match model.Diagram.GetComponentById compId |> Result.map Extractor.extractComponent with
+        match Sheet.getComponentById compId model.Diagram with
         | Ok {Type=RAM mem} | Ok {Type=ROM mem} | Ok {Type = AsyncROM mem} -> mem
         | _ -> memory
 
@@ -199,9 +199,10 @@ let private makeEditorBody memory compId memoryEditorData model dispatch =
                         closeError dispatch
                         // Write new value.
                         let oldData = 
-                            model.Diagram.GetComponentById compId
-                            |> Result.map Extractor.extractComponentType
-                            |> (function | Ok (RAM d) | Ok (ROM d) | Ok (AsyncROM d) -> d | _ -> memory)
+                            match Sheet.getComponentById compId model.Diagram with
+                            | Ok comp -> Ok comp.Type
+                                         |> (function | Ok (RAM d) | Ok (ROM d) | Ok (AsyncROM d) -> d | _ -> memory)
+                            | _ -> failwithf "not implemented Memory EditorView getComponentById"
                         oldData.Data
                         |> Map.add addr value
                         |> Map.filter (fun k v -> v <> 0L)

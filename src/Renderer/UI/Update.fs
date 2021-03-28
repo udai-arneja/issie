@@ -74,10 +74,10 @@ let private repaintBusComponents model connsWidth state =
 /// Alter diagram with highlighting of busses. This runs the width inference algorithm and then 
 /// colors Diagram but does NOT set model.Highlighted. This needs to be done separately.
 let private runBusWidthInference model =
-    match model.Diagram.GetCanvasState () with
+    match Sheet.getCanvasState model.Diagram with
     | None -> model
-    | Some jsState ->
-        let state = extractState jsState
+    | Some state ->
+        // let state = extractState jsState
         state |> inferConnectionsWidth |> function
         | Error e ->
             // TODO: this makes the content of the model.Higlighted inconsistent.
@@ -170,9 +170,9 @@ let private handleKeyboardShortcutMsg msg model =
     | AltC ->
         // Similar to the body of OnDiagramButtonsView.copyAction but without
         // dispatching the SetClipboard message.
-        match model.Diagram.GetSelected () with
+        match Sheet.getSelected model.Diagram with
         | None -> model
-        | Some jsState -> { model with Clipboard = extractState jsState }
+        | Some canvas -> { model with Clipboard = canvas }
     | AltV ->
         DiagramMainView.pasteAction model
         model
@@ -236,13 +236,13 @@ let checkSelection model cmd =
         let compIds = jsComps |> List.map (fun comp -> JSHelpers.getFailIfNull comp ["id"] : string)
         let connIds = jsConns |> List.map (fun conn -> JSHelpers.getFailIfNull conn ["id"] : string)
         compIds,connIds
-    match model.Diagram.GetSelected() with
+    match Sheet.getSelected model.Diagram with
     | None -> model,cmd // can't do anything yet
     | Some newSelection ->
         let newSelectedIds =  extractIds newSelection
         if newSelectedIds = model.LastSelectedIds then
             //let model = 
-            //    {model with 
+             //    {model with 
             //        CurrentSelected = extractState newSelection; 
             //        LastSelectedIds = newSelectedIds}
             model, cmd
@@ -309,7 +309,7 @@ let checkForAutoSaveOrSelectionChanged msg (model, cmd) =
 let private setSelWavesHighlighted model connIds =
     let (_, errConnIds), oldConnIds = model.Hilighted
     let currentConnIds = 
-        model.Diagram.GetCanvasState()
+        Sheet.getCanvasState model.Diagram
         |> Option.map extractState
         |> Option.map (snd >> List.map (fun conn -> conn.Id))
         |> Option.defaultValue []

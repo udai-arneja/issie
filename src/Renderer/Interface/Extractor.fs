@@ -35,6 +35,18 @@ let private extractPort (maybeNumber : int option) (jsPort : JSPort) : Port =
         PortNumber = maybeNumber
         PortType   = portType
         HostId     = getFailIfNull jsPort ["parent"; "id"]
+        PortPos  =  {X=0.;Y=0.}
+        BusWidth  =  0
+
+
+
+
+    ///HELLLO
+
+
+
+
+
     }
 
 let private extractPorts (jsPorts : JSPorts) : Port list =

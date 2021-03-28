@@ -111,8 +111,8 @@ let sheetDefault = {
 /// component positions are always set or returned as unscaled, and with no offset
 /// sheet values, offsets, and scaling change what portion of draw2d canvas is seen
 let scrollData model =
-    let scrollArea model  = model.Diagram.GetScrollArea()
-    let zoomOpt model = model.Diagram.GetZoom()
+    let scrollArea model  = Some Sheet.getScrollArea // changed this, but it's stub code at the moment 
+    let zoomOpt model = Some model.Diagram.Zoom
     match scrollArea model, zoomOpt model with 
         | Some a, Some z -> 
             //printfn "Area = (%d,%d,%d,%d, %.2f)" a.Width a.Height a.Left a.Top z
@@ -154,7 +154,7 @@ let changeZoom (model:Model)  (zoomCentre: (int * int) option) (mag:float) (sd:S
     let zr = zoom' / sd.Zoom
     let left' = max 0. ((float sd.SheetLeft) + float (x0-sd.SheetLeft)*(1. - zr))
     let top' = max 0. ((float sd.SheetTop) + float (y0-sd.SheetTop)*(1. - zr))
-    let sa  = model.Diagram.GetScrollArea()
+    let sa  = Some Sheet.getScrollArea 
 
     //printfn "BEFORE:\nsd=%A\nsa=%A\nleft'=%f\ntop'=%f\nzoom'=%f\nzoom=%f" sd sa left' top' zoom' sd.Zoom
     model.Diagram.SetScrollZoom (int (left'/zr)) (int (top'/zr)) zoom'
@@ -199,12 +199,12 @@ let getNewComponentPosition (model:Model) =
     let isPartlyVisible (x,y) = x >= sDat.SheetLeft - maxX && y >= sDat.SheetTop - maxY  && x < sDat.SheetLeft + sDat.SheetX  && y < sDat.SheetTop + sDat.SheetY
 
     let componentPositions , boundingBox, comps  =
-        match model.Diagram.GetCanvasState () with
+        match Sheet.getCanvasState model.Diagram with
         | None -> 
             printfn "No canvas detected!"
             [bbTopLeft],bbTopLeft, []
-        | Some jsState ->
-            let comps,conns = Extractor.extractState jsState
+        | Some (comps,conns) ->
+            // let comps,conns = Extractor.extractState jsState
             let xyPosL =
                 comps
                 |> List.map (fun co -> {LTop=(co.X,co.Y); RBot=(co.X+co.W,co.Y+co.H)})
@@ -440,10 +440,10 @@ let stdLabel (compType: ComponentType) (model:Model) =
         |> List.filter (fun i -> not <| List.contains i lst)
         |> List.head
 
-    match model.Diagram.GetCanvasState () with
+    match Sheet.getCanvasState model.Diagram with
     | None when prefix <> "" -> prefix + "1"
-    | Some jsState when prefix <> "" -> 
-        extractState jsState
+    | Some state when prefix <> "" -> 
+        state
         |> fst
         |> List.map (fun c -> c.Label) 
         |> List.collect samePrefixPlusNum

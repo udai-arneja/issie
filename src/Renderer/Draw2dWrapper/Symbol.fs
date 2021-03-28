@@ -5,7 +5,7 @@ open Browser
 open Elmish
 open Elmish.React
 open HelpersOne
-open CommonTypesOne
+open CommonTypes
 
 
 //------------------------------------------------------------------------//
@@ -25,10 +25,10 @@ type Symbol =
     {
         LastDragPos : XYPos
         IsDragging : bool
-        Id : CommonTypesOne.ComponentId
-        Type : CommonTypesOne.ComponentType
-        InputPorts : CommonTypesOne.Port list
-        OutputPorts : CommonTypesOne.Port list
+        Id : CommonTypes.ComponentId
+        Type : CommonTypes.ComponentType
+        InputPorts : CommonTypes.Port list
+        OutputPorts : CommonTypes.Port list
         Pos: XYPos
         H : float
         W : float
@@ -54,19 +54,19 @@ type Model = {
 type Msg =
     /// Mouse info with coords adjusted form top-level zoom
     | MouseMsg of MouseT
-    //| Dragging of sId : CommonTypesOne.ComponentId * pagePos: XYPos
-    | Dragging of sId : CommonTypesOne.ComponentId list * pagePos: XYPos * prevPagePos: XYPos
-    //| DraggingList of sId : CommonTypesOne.ComponentId list  * pagePos: XYPos * prevPagePos: XYPos
-    //| EndDragging of sId : CommonTypesOne.ComponentId
-    //| EndDraggingList of sId : CommonTypesOne.ComponentId list *pagePos:XYPos
-    | AddSymbol of inputs: int list * outputs: int list * comp: CommonTypesOne.ComponentType
+    //| Dragging of sId : CommonTypes.ComponentId * pagePos: XYPos
+    | Dragging of sId : CommonTypes.ComponentId list * pagePos: XYPos * prevPagePos: XYPos
+    //| DraggingList of sId : CommonTypes.ComponentId list  * pagePos: XYPos * prevPagePos: XYPos
+    //| EndDragging of sId : CommonTypes.ComponentId
+    //| EndDraggingList of sId : CommonTypes.ComponentId list *pagePos:XYPos
+    | AddSymbol of inputs: int list * outputs: int list * comp: CommonTypes.ComponentType
     | DeleteSymbol
-    | UpdateSymbolModelWithComponent of CommonTypesOne.Component // Issie interface
-    | ToggleSymbol of selectedSymbol:CommonTypesOne.ComponentId list // usually one thing
-    | Hovering of portSymbol:CommonTypesOne.ComponentId list
+    | UpdateSymbolModelWithComponent of CommonTypes.Component // Issie interface
+    | ToggleSymbol of selectedSymbol:CommonTypes.ComponentId list // usually one thing
+    | Hovering of portSymbol:CommonTypes.ComponentId list
     | ShowValidPorts of inOut:PortVisibility  * portId:string * mousePos:XYPos
-    | UpdateBBoxes of CommonTypesOne.ComponentId list
-    | SnapSymbolToGrid of CommonTypesOne.ComponentId list
+    | UpdateBBoxes of CommonTypes.ComponentId list
+    | SnapSymbolToGrid of CommonTypes.ComponentId list
     // | SelectSymbol of Symbol list
 
 //---------------------------------helper types and functions----------------//
@@ -148,30 +148,30 @@ let creditLines x1Pos y1Pos x2Pos y2Pos width = // cheeky bit of kareem abstract
 //-----------------------------Skeleton Model Type for symbols----------------//
 
 
-let createPortList (comp:Symbol)(portType:CommonTypesOne.PortType)(portNumber:int)(width:int)(numPorts): CommonTypesOne.Port =
+let createPortList (comp:Symbol)(portType:CommonTypes.PortType)(portNumber:int)(width:int)(numPorts): CommonTypes.Port =
     let portPos=
         match comp.Type with
-        // |RAM -> if portType = CommonTypesOne.Input
+        // |RAM -> if portType = CommonTypes.Input
         //sthen {X=comp.Pos.X-10.;Y=(comp.Pos.Y+ (float(portNumber + 1))*(comp.H/6.))}
         //            else {X=(comp.Pos.X+comp.W);Y=(comp.Pos.Y+(float (portNumber + 1))*(comp.H/2.))}
-        // |NbitAdder -> if portType = CommonTypesOne.Input
+        // |NbitAdder -> if portType = CommonTypes.Input
         //               then {X=comp.Pos.X-10.;Y=(comp.Pos.Y+ (float (portNumber)) + 1.)*(comp.H/4.)}
         //               else {X=(comp.Pos.X+comp.W);Y=(comp.Pos.Y+(float (portNumber + 1))*(comp.H/3.))}
         |_ -> match (portType, numPorts) with
-              | (CommonTypesOne.Input, 1) -> {X=comp.Pos.X ;Y=(comp.Pos.Y+ (float (portNumber + 1))*(comp.H/2.))}
-              | (CommonTypesOne.Input, 2) -> {X=comp.Pos.X ; Y=(comp.Pos.Y + (((float (portNumber))* comp.H)/2.) + comp.H/4.)}
-              | (CommonTypesOne.Input, 3) -> {X=comp.Pos.X ;Y=(comp.Pos.Y+ 60.)} //(float (portNumber)) + 1.)*(comp.H/4.)
-              | (_, 1) -> {X=(comp.Pos.X+comp.W);Y=(comp.Pos.Y + ( comp.H/2.) )}
+              | (CommonTypes.Input, 1) -> {X=comp.Pos.X ;Y=(comp.Pos.Y+ (float (portNumber + 1))*(comp.H/2.))}
+              | (CommonTypes.Input, 2) -> {X=comp.Pos.X ; Y=(comp.Pos.Y + (((float (portNumber))* comp.H)/2.) + comp.H/4.)}
+              | (CommonTypes.Input, 3) -> {X=comp.Pos.X ;Y=(comp.Pos.Y+ 60.)} //(float (portNumber)) + 1.)*(comp.H/4.)
+              | (_, 1) -> {X=(comp.Pos.X+comp.W);Y=(comp.Pos.Y + (comp.H/2.) )}
               | (_, 2) -> {X=(comp.Pos.X+comp.W);Y=(comp.Pos.Y + ((float (portNumber))*2. + 1.)*(comp.H/4.))}  // this one
               |_ -> failwithf "Error on portlist"
     {
-        CommonTypesOne.Port.Id = HelpersOne.uuid()
-        CommonTypesOne.Port.PortNumber = Some portNumber
-        CommonTypesOne.Port.PortType = portType
-        CommonTypesOne.Port.HostId = string(comp.Id)
-        CommonTypesOne.Port.PortPos = portPos
-        CommonTypesOne.Port.BusWidth = width
-        // CommonTypesOne.Port.PortInUse = false
+        CommonTypes.Port.Id = HelpersOne.uuid()
+        CommonTypes.Port.PortNumber = Some portNumber
+        CommonTypes.Port.PortType = portType
+        CommonTypes.Port.HostId = string(comp.Id)
+        CommonTypes.Port.PortPos = portPos
+        CommonTypes.Port.BusWidth = width
+        // CommonTypes.Port.PortInUse = false
     }
 
 //-----------------------Skeleton Message type for symbols---------------------//
@@ -179,11 +179,11 @@ let createPortList (comp:Symbol)(portType:CommonTypesOne.PortType)(portNumber:in
 /// Symbol creation: a unique Id is given to the symbol, found from uuid.
 /// The parameters of this function must be enough to specify the symbol completely
 /// in its initial form. This is called by the AddSymbol message and need not be exposed.
-let createNewSymbol (inputs: int list) (outputs: int list) (comp:CommonTypesOne.ComponentType) = //could match comp for symbols of different heights and widths
+let createNewSymbol (inputs: int list) (outputs: int list) (comp:CommonTypes.ComponentType) = //could match comp for symbols of different heights and widths
     let mainSymbol = {
                 LastDragPos = {X=10.;Y=10.}
                 IsDragging = false
-                Id = CommonTypesOne.ComponentId (HelpersOne.uuid())
+                Id = CommonTypes.ComponentId (HelpersOne.uuid())
                 Type = comp
                 InputPorts = []
                 OutputPorts = []
@@ -195,15 +195,15 @@ let createNewSymbol (inputs: int list) (outputs: int list) (comp:CommonTypesOne.
                 IsSliding = (ShowInputsOnly, "null", 0, {X=0.; Y=0.})
               }
 
-    let InputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypesOne.PortType.Input index width (List.length inputs)) inputs
-    let OutputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypesOne.PortType.Output index width (List.length outputs)) outputs
+    let InputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypes.PortType.Input index width (List.length inputs)) inputs
+    let OutputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypes.PortType.Output index width (List.length outputs)) outputs
     {mainSymbol with InputPorts=InputPortsList; OutputPorts=OutputPortsList}
 
-let createCustomSymbol (comp:CommonTypesOne.CustomComponentType) = 
+let createCustomSymbol (comp:CommonTypes.CustomComponentType) = 
     let mainSymbol = {
                 LastDragPos = {X=10.;Y=10.}
                 IsDragging = false
-                Id = CommonTypesOne.ComponentId (HelpersOne.uuid())
+                Id = CommonTypes.ComponentId (HelpersOne.uuid())
                 Type = Custom comp
                 InputPorts = []
                 OutputPorts = []
@@ -216,8 +216,8 @@ let createCustomSymbol (comp:CommonTypesOne.CustomComponentType) =
               }  
     let _, inputBusWidths = List.unzip comp.InputLabels
     let _, outputBusWidths = List.unzip comp.OutputLabels
-    let InputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypesOne.PortType.Input index width (List.length comp.InputLabels )) inputBusWidths //comp.InputLabels?
-    let OutputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypesOne.PortType.Output index width (List.length comp.OutputLabels)) outputBusWidths
+    let InputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypes.PortType.Input index width (List.length comp.InputLabels )) inputBusWidths //comp.InputLabels?
+    let OutputPortsList = List.mapi (fun index width -> createPortList mainSymbol CommonTypes.PortType.Output index width (List.length comp.OutputLabels)) outputBusWidths
     {mainSymbol with InputPorts=InputPortsList; OutputPorts=OutputPortsList}            
 
 
@@ -228,15 +228,15 @@ let createNewBoundingBox (inputs: int list) (outputs: int list) (sym: Symbol)=
     // [start.X-10., start.Y-10.; 110., start.Y-10.; 110., 75.+float (max inputno outputno)*40.; 75.+float (max inputno outputno)*40., 75.+float (max inputno outputno)*40.]
 
 let portmove portId inputYes model =
-    let findPort i (acc: CommonTypesOne.Port list) (x:Symbol)  =  match i with
-                                                               |1 -> List.append (List.tryFind (fun (y:CommonTypesOne.Port) -> string y.Id = portId ) x.InputPorts |> function |Some a -> [a] |None -> []) acc
-                                                               |0 -> List.append (List.tryFind (fun (y:CommonTypesOne.Port) -> string y.Id = portId ) x.OutputPorts |> function |Some a -> [a] |None -> []) acc
+    let findPort i (acc: CommonTypes.Port list) (x:Symbol)  =  match i with
+                                                               |1 -> List.append (List.tryFind (fun (y:CommonTypes.Port) -> string y.Id = portId ) x.InputPorts |> function |Some a -> [a] |None -> []) acc
+                                                               |0 -> List.append (List.tryFind (fun (y:CommonTypes.Port) -> string y.Id = portId ) x.OutputPorts |> function |Some a -> [a] |None -> []) acc
                                                                | _ -> failwithf "not implemented - findPort Function, Symbol line 152"
     let portReturn = match inputYes with
                      | ShowOutputsOnly -> List.fold (findPort 1) [] model |> List.head // potentially global for symbol
                      | ShowInputsOnly -> List.fold (findPort 0) [] model |> List.head
                      | _ -> failwithf "not implemented - portReturn Function, Symbol line 155"
-    let symbolReturn = List.find (fun x -> x.Id = CommonTypesOne.ComponentId portReturn.HostId) model
+    let symbolReturn = List.find (fun x -> x.Id = CommonTypes.ComponentId portReturn.HostId) model
     let portNumber = match portReturn.PortNumber with
                      |Some a -> a
                      | _ -> failwithf "not implemented - portNumber Function, Symbol line 159"
@@ -253,11 +253,11 @@ let update (msg : Msg) (model : Model): Model*Cmd<'a>  =
         // let customInformation: CustomComponentType= 
         //     {Name="Kurtangle";InputLabels=[("Udai",1);("Simi",1)];OutputLabels=[("Karl",1)]}
         match compType with
-        | CommonTypesOne.Custom customInformation -> let newSymbol = createCustomSymbol customInformation
-                                                     let newBoundingBox = createNewBoundingBox inputno outputno newSymbol
-                                                     let newSymbolList = List.rev (newSymbol::model.Symbols)
-                                                     let newSymbolsBoundingBoxes = List.rev (newBoundingBox::model.SymBBoxes)
-                                                     {model with Symbols=newSymbolList; SymBBoxes=newSymbolsBoundingBoxes} , Cmd.none
+        | CommonTypes.Custom customInformation -> let newSymbol = createCustomSymbol customInformation
+                                                  let newBoundingBox = createNewBoundingBox inputno outputno newSymbol
+                                                  let newSymbolList = List.rev (newSymbol::model.Symbols)
+                                                  let newSymbolsBoundingBoxes = List.rev (newBoundingBox::model.SymBBoxes)
+                                                  {model with Symbols=newSymbolList; SymBBoxes=newSymbolsBoundingBoxes} , Cmd.none
         | _ -> let newSymbol = createNewSymbol inputno outputno compType
                let newBoundingBox = createNewBoundingBox inputno outputno newSymbol
                let newSymbolList = List.rev (newSymbol::model.Symbols)
@@ -448,14 +448,14 @@ type private RenderSymbolProps =
         Symb : Symbol // name works for the demo!
         Dispatch : Dispatch<Msg>
         key: string // special field used by react to detect whether lists have changed, set to symbol Id
-        Comp : CommonTypesOne.ComponentType
+        Comp : CommonTypes.ComponentType
     }
 
 /// View for one symbol with caching for efficient execution when input does not change
 
 
 
-let private RenderSymbol (comp: CommonTypesOne.ComponentType)=
+let private RenderSymbol (comp: CommonTypes.ComponentType)=
 
     match comp with
     // | Input bits | Output bits ->
@@ -485,8 +485,8 @@ let private RenderSymbol (comp: CommonTypesOne.ComponentType)=
                 //     )
                 let (portVis, symId, portNum, mousePosition) = props.Symb.IsSliding
                 let displayPort = 
-                    let outputPorts = List.map (fun (ports:CommonTypesOne.Port) -> circus ports.PortPos.X  ports.PortPos.Y 5. ) props.Symb.OutputPorts
-                    let inputPorts = List.map (fun (ports:CommonTypesOne.Port) -> circus ports.PortPos.X  ports.PortPos.Y 5. ) props.Symb.InputPorts
+                    let outputPorts = List.map (fun (ports:CommonTypes.Port) -> circus ports.PortPos.X  ports.PortPos.Y 5. ) props.Symb.OutputPorts
+                    let inputPorts = List.map (fun (ports:CommonTypes.Port) -> circus ports.PortPos.X  ports.PortPos.Y 5. ) props.Symb.InputPorts
                     let slideCirc IO portNum (mousePos:XYPos)=
                         let portList =
                             if IO = "input" then props.Symb.InputPorts.[portNum].PortPos else props.Symb.OutputPorts.[portNum].PortPos
@@ -1022,32 +1022,32 @@ let view (model : Model) (dispatch : Msg -> unit) =
 
 //---------------Other interface functions--------------------//
 
-let symbolPos (symModel: Model) (sId: CommonTypesOne.ComponentId) : XYPos =
+let symbolPos (symModel: Model) (sId: CommonTypes.ComponentId) : XYPos =
     List.find (fun sym -> sym.Id = sId) symModel.Symbols
     |> (fun sym -> sym.Pos)
 
-let inputPortList (symModel: Model) (sId: CommonTypesOne.ComponentId) : CommonTypesOne.Port list =
+let inputPortList (symModel: Model) (sId: CommonTypes.ComponentId) : CommonTypes.Port list =
     List.find (fun sym -> sym.Id = sId) symModel.Symbols
     |> (fun sym -> sym.InputPorts)
 
-let outputPortList (symModel: Model) (sId: CommonTypesOne.ComponentId) : CommonTypesOne.Port list =
+let outputPortList (symModel: Model) (sId: CommonTypes.ComponentId) : CommonTypes.Port list =
     List.find (fun sym -> sym.Id = sId) symModel.Symbols
     |> (fun sym -> sym.OutputPorts)
 
-let inputPortPos (symModel: Model) (sId: CommonTypesOne.ComponentId) (pId: CommonTypesOne.InputPortId) : XYPos =
+let inputPortPos (symModel: Model) (sId: CommonTypes.ComponentId) (pId: CommonTypes.InputPortId) : XYPos =
     let portList = inputPortList symModel sId
 
-    List.find (fun (por:CommonTypesOne.Port) -> por.Id = string pId) portList
+    List.find (fun (por:CommonTypes.Port) -> por.Id = string pId) portList
     |> (fun por -> por.PortPos)
 
-let outputPortPos (symModel: Model) (sId: CommonTypesOne.ComponentId) (pId: CommonTypesOne.OutputPortId) : XYPos =
+let outputPortPos (symModel: Model) (sId: CommonTypes.ComponentId) (pId: CommonTypes.OutputPortId) : XYPos =
     let portList = outputPortList symModel sId
 
-    List.find (fun (por:CommonTypesOne.Port) -> por.Id = string pId) portList
+    List.find (fun (por:CommonTypes.Port) -> por.Id = string pId) portList
     |> (fun por -> por.PortPos)
 
 /// Update the symbol with matching componentId to comp, or add a new symbol based on comp.
-let updateSymbolModelWithComponent (symModel: Model) (comp:CommonTypesOne.Component) =
+let updateSymbolModelWithComponent (symModel: Model) (comp:CommonTypes.Component) =
     failwithf "Not Implemented"
 
 /// Return the output Buswire width (in bits) if this can be calculated based on known
@@ -1055,7 +1055,7 @@ let updateSymbolModelWithComponent (symModel: Model) (comp:CommonTypesOne.Compon
 /// this calculation is based on ports, and the skeleton code does not implement ports or
 /// port ids. If This is done the inputs could be expressed in terms of port Ids.
 let calculateOutputWidth
-        (wId: CommonTypesOne.ConnectionId)
+        (wId: CommonTypes.ConnectionId)
         (outputPortNumber: int)
         (inputPortWidths: int option list) : int option =
     failwithf "Not implemented"
@@ -1064,10 +1064,10 @@ let calculateOutputWidth
 //----------------------interface to Issie-----------------------------//
 let extractComponent
         (symModel: Model)
-        (sId:CommonTypesOne.ComponentId) : CommonTypesOne.Component =
+        (sId:CommonTypes.ComponentId) : CommonTypes.Component =
     failwithf "Not implemented"
 
-let extractComponents (symModel: Model) : CommonTypesOne.Component list =
+let extractComponents (symModel: Model) : CommonTypes.Component list =
     failwithf "Not implemented"
 
 

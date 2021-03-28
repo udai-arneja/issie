@@ -84,10 +84,10 @@ let formatLabel (comp:Component) (text:string) =
 
 let setComponentLabel model (comp:Component) text =
     let label = formatLabel comp text
-    model.Diagram.EditComponentLabel comp.Id label
+    Sheet.editComponentLabel comp.Id label model.Diagram
 
 let setComponentLabelFromText model (comp:Component) text =
-    model.Diagram.EditComponentLabel comp.Id text
+    Sheet.editComponentLabel comp.Id text model.Diagram
 
 //========//
 // Popups //

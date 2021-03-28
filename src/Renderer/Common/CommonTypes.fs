@@ -22,6 +22,15 @@ module CommonTypes
     /// separately for inputs and outputs.
     /// HostId is the unique Id of the component where the port is. For example,
     /// all three ports on the same And component will have the same HostId.
+    /// 
+    /// 
+    //Position on XYCanvas
+    type XYPos={
+        X : float
+        Y : float
+    }
+
+
     type Port = {
         Id : string
         // For example, an And would have input ports 0 and 1, and output port 0.
@@ -29,8 +38,8 @@ module CommonTypes
         PortNumber : int option
         PortType : PortType
         HostId : string
-        // PortPos : Helpers.XYPos
-        // BusWidth : int
+        PortPos : XYPos
+        BusWidth : int
     }
 
     /// Name identified the LoadedComponent used.
@@ -74,6 +83,7 @@ module CommonTypes
         | DFF | DFFE | Register of BusWidth: int | RegisterE of BusWidth: int 
         | AsyncROM of Memory | ROM of Memory | RAM of Memory // memory is contents
 
+
     /// JSComponent mapped to F# record.
     /// Id uniquely identifies the component within a sheet and is used by draw2d library.
     /// Label is optional descriptor displayed on schematic.
@@ -111,7 +121,17 @@ module CommonTypes
     /// Case name is used (lowercase) as HTML color name
     /// See JSHelpers.getColorString
     /// lots of colors can be added, see https://www.w3schools.com/colors/colors_names.asp
-    type HighLightColor = Red | Blue | Yellow | Green | Orange 
+    type HighLightColor = Red | Blue | Yellow | Green | Orange | Grey | Black
+    with
+            member this.Text() = // the match statement is used for performance
+            match this with
+            | Red -> "Red"
+            | Blue -> "Blue"
+            | Yellow -> "Yellow"
+            | Green -> "Green"
+            | Grey -> "Grey"
+            | Black -> "Black"
+            | c -> sprintf "%A" c
 
     // The next types are not strictly necessary, but help in understanding what is what.
     // Used consistently they provide type protection that greatly reduces coding errors
