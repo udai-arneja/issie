@@ -88,8 +88,9 @@ let n2StringOfRadix (hasRadixPrefix: bool) (n: bigint) (nBits: uint32) (rad: Num
 /// get an option of the reduced canvas state
 let getReducedCanvState model =
     match Sheet.getCanvasState model.Diagram with
-    | Some cS -> Some <| extractReducedState cS
     | None -> None
+    | someState -> Some <| Extractor.reducedState someState
+    
     
 /// get NetList from WaveSimModel
 let wsModel2netList wsModel =

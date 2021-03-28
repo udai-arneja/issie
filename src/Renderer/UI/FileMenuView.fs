@@ -214,10 +214,10 @@ let updateLoadedComponents name (setFun: LoadedComponent -> LoadedComponent) (lc
 
 /// return current project with current sheet updated from canvas if needed
 let updateProjectFromCanvas (model:Model) =
-    match model.Diagram.GetCanvasState() with
+    match Sheet.getCanvasState model.Diagram with
     | None -> model.CurrentProj
     | Some state ->  
-        extractState state
+        state
         |> fun canvas ->
             let inputs, outputs = parseDiagramSignature canvas
             let setLc lc =
@@ -256,11 +256,11 @@ let setSavedWave compIds (wave: SavedWaveInfo option) model : Model =
 
 /// Save the sheet currently open, return  the new sheet's Loadedcomponent if this has changed
 let saveOpenFileAction isAuto model =
-    match model.Diagram.GetCanvasState (), model.CurrentProj with
+    match Sheet.getCanvasState model.Diagram, model.CurrentProj with
     | None, _ | _, None -> None
-    | Some jsState, Some project ->
-        let reducedState = extractReducedState jsState
-        extractState jsState
+    | Some state, Some project ->
+        let reducedState = Extractor.reducedState (Some state)
+        state
         |> (fun state -> 
                 let savedState = state, getSavedWave model
                 if isAuto then
@@ -286,7 +286,9 @@ let saveOpenFileActionWithModelUpdate (model: Model) (dispatch: Msg -> Unit) =
     if requestFileActivity "save" dispatch then
         let opt = saveOpenFileAction false model
         let ldcOpt = Option.map fst opt
-        let reducedState = Option.map snd opt |> Option.defaultValue ([],[])
+        let reducedState = match Option.map snd opt |> Option.defaultValue None with
+                           | Some state -> state
+                           | None -> ([],[])
         match model.CurrentProj with
         | None -> failwithf "What? Should never be able to save sheet when project=None"
         | Some p -> 
@@ -393,7 +395,9 @@ let private openFileInProject' saveCurrent name project (model:Model) dispatch =
                     let opt = saveOpenFileAction false updatedModel
                     let ldcOpt = Option.map fst opt
                     let ldComps = updateLdCompsWithCompOpt ldcOpt project.LoadedComponents
-                    let reducedState = Option.map snd opt |> Option.defaultValue ([],[])
+                    let reducedState = match Option.map snd opt |> Option.defaultValue None with
+                                       | Some state -> state
+                                       | None -> ([],[])
                     match model.CurrentProj with
                     | None -> failwithf "What? Should never be able to save sheet when project=None"
                     | Some p -> 
@@ -475,7 +479,9 @@ let renameSheet oldName newName (model:Model) dispatch =
             let opt = saveOpenFileAction false updatedModel
             let ldcOpt = Option.map fst opt
             let ldComps = updateLdCompsWithCompOpt ldcOpt p.LoadedComponents
-            let reducedState = Option.map snd opt |> Option.defaultValue ([],[])
+            let reducedState = match Option.map snd opt |> Option.defaultValue None with
+                               | Some state -> state
+                               | None -> ([],[])
             // update Autosave info
             SetLastSavedCanvas (p.OpenFileName,reducedState)
             |> dispatch

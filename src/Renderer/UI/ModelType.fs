@@ -465,9 +465,12 @@ let getDetailedState (model:Model) =
     // |> Option.map Extractor.extractState
     |> Option.defaultValue ([],[])
 
+/// Transform the CanvasState into an f# data structure, with layout data removed (for checking significant changes).
+/// Components and connections are sorted to make them order-invariant - selecting components alters order.
 let getReducedState (model:Model) =
     Sheet.getCanvasState model.Diagram
-    |> Option.map Extractor.extractReducedState 
+    |> Extractor.reducedState
+    // |> Option.map Extractor.extractReducedState 
 
 let addReducedState a name model =
     let lastState = a.LastSavedCanvasState

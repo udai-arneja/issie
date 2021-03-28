@@ -51,10 +51,12 @@ let mutable simCache: SimCache = simCacheInit ""
 
 let rec prepareSimulationMemoised
         (diagramName : string)
-        (canvasState : JSCanvasState)
+        (canvasState : CanvasState)
         (loadedDependencies : LoadedComponent list)
         : Result<SimulationData, SimulationError> * CanvasState =
-    let rState = extractReducedState canvasState
+    let rState = match Extractor.reducedState (Some canvasState) with
+                 | Some state -> state
+                 | None -> ([],[])
     if diagramName <> simCache.Name then
         simCache <- simCacheInit diagramName
         prepareSimulationMemoised diagramName canvasState loadedDependencies
@@ -82,11 +84,11 @@ let makeSimData model =
     match Sheet.getCanvasState model.Diagram, model.CurrentProj with
     | None, _ -> None
     | _, None -> None
-    | Some jsState, Some project ->
+    | Some state, Some project ->
         let otherComponents = 
             project.LoadedComponents 
             |> List.filter (fun comp -> comp.Name <> project.OpenFileName)
-        (jsState, otherComponents)
+        (state, otherComponents)
         ||> prepareSimulationMemoised project.OpenFileName
         |> Some
 

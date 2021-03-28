@@ -249,7 +249,7 @@ let checkSelection model cmd =
         else
             let model = 
                 {model with 
-                    CurrentSelected = extractState newSelection; 
+                    CurrentSelected = newSelection; 
                     LastSelectedIds = newSelectedIds}
             model, Cmd.batch [cmd; Cmd.ofMsg SelectionHasChanged]
 
